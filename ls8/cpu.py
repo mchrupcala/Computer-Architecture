@@ -13,6 +13,14 @@ class CPU:
         self.r0, self.r1, self.r2, self.r3, self.r4, self.r5, self.r6, self.r7 = 0, 0, 0, 0, 0, 0, 0
         self.pc = 0
 
+    def ram_read(self, read_address):
+        #read the value at the read_address. Not sure if this is right...
+        return self.memory[read_address]
+
+    def ram_write(self, write_value, write_address):
+        #accept the value to write & address to write it to
+        pass
+
     def load(self):
         """Load a program into memory."""
 
@@ -64,6 +72,21 @@ class CPU:
 
         print()
 
-    def run(self):
+    def run(self, operand_a=None, operand_b=None):
         """Run the CPU."""
-        pass
+        instruction_register = self.memory[self.pc]
+
+        while True:
+            if instruction_register == "HLT":
+                # return False
+                sys.exit(0)
+            elif instruction_register == "LDI":
+                self.memory[operand_a] = operand_b
+                #Might need to skip steps
+                self.pc += 1
+            elif instruction_register == "PRN":
+                print(self.memory[operand_a])
+                self.pc += 1
+            else:
+                print(f"Sorry I couldn't find that command: {instruction_register}")
+                sys.exit(0)
