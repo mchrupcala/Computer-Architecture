@@ -5,7 +5,24 @@
 import sys
 from cpu import *
 
-cpu = CPU()
+run_program = None
+try:
+    run_program = sys.argv[1]
+except:
+    print("Please enter a program you'd like to run")
 
-cpu.load()
+
+cpu = CPU()
+f = open(run_program, "r")
+# print(f.readlines())
+program = []
+
+for x in f:
+    line = x.split('#', 1)[0]
+    line = line.strip('\n')
+    line = int(line, 2)
+
+    program.append(line)
+
+cpu.load(program)
 cpu.run()
