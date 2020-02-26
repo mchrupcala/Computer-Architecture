@@ -10,9 +10,10 @@ class CPU:
         #hold 256 bytes of memory
         self.ram = [0] * 256
         # 8 general-purpose registers
-        self.r0, self.r1, self.r2, self.r3, self.r4, self.r5, self.r6, self.r7 = 0, 0, 0, 0, 0, 0, 0, 0
+        self.reg = [0] * 8
         self.pc = 0
-        self.reg = self.ram[self.pc]
+        # self.reg = self.ram[self.pc]
+        self.sp = 7
 
     def ram_read(self, read_address):
         #read the value at the read_address. Not sure if this is right...
@@ -52,8 +53,8 @@ class CPU:
         #elif op == "SUB": etc
         elif op == "MUL":
             # print(self.ram[reg_a], self.ram[reg_b])
-            print(reg_a, reg_b)
-            reg_a *= reg_b
+            # print(reg_a, reg_b)
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -84,24 +85,55 @@ class CPU:
         while True:
             operand_a = self.ram_read(self.pc+1)
             operand_b = self.ram_read(self.pc+2)
-            self.reg = self.ram[self.pc]
+            command = self.ram[self.pc]
 
-            if self.reg == 0b00000001:
+            if command == 0b00000001:
                 # return False
                 sys.exit(0)
+
                 #LDI
-            elif self.reg == 0b10000010:
-                self.ram[operand_a] = operand_b
-                print('LDI while at ', self.reg)
+            elif command == 0b10000010:
+                self.reg[operand_a] = operand_b
+                # print('LDI while at ', self.reg)
                 self.pc += 3
+
                 #PRN
-            elif self.reg == 0b01000111:
-                print("Printing: ", self.ram[operand_a])
+            elif command == 0b01000111:
+                print("Printing: ", self.reg[operand_a])
                 self.pc += 2
-            elif self.reg == 0b10100010:
-                print(f"Multiplying at ", self.reg)
+
+                #MUL
+            elif command == 0b10100010:
+                # print(f"Multiplying at ", self.reg)
                 self.alu("MUL", operand_a, operand_b)
                 self.pc += 3
+
+
+                #POP
+            elif command == 0b01000110:
+                reg_index = self.ram[self.pc+1]
+                reg_val = self.ram[self.reg[self.sp]]
+                
+                #copy the value from the address pointed to by SP to the given register
+                self.reg[reg_index] = reg_val
+
+                self.reg[self.sp] += 1
+                self.pc += 2
+
+
+                #PUSH
+            elif command == 0b01000101:
+                reg_index = self.ram[self.pc+1]
+                reg_val = self.reg[reg_index]
+                # copied_val = self.ram[operand_a]
+                
+                #decrement the SP....?why am I decrementing the value of the register at sp? thought I'm supposed to decrement the SP?
+                self.reg[self.sp] -= 1
+
+                #copy the value in the given register to the address pointed to by SP
+                self.ram[self.reg[self.sp]] = reg_val
+                self.pc += 2
+            
             else:
-                print(f"Sorry I couldn't find that command: {self.reg}, {self.pc}")
+                print(f"Sorry I couldn't find that command: {command}, {self.pc}")
                 sys.exit(0)
